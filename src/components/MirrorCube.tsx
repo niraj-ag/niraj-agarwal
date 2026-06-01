@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
 import { motion, useAnimationFrame } from "framer-motion";
+import { useEffect, useState } from "react";
 
 interface MirrorCubeProps {
   size?: number;
@@ -9,31 +9,41 @@ interface MirrorCubeProps {
 }
 
 /*
- * Material Design Language:
- * - Matte black ceramic body
- * - Graphite anodized aluminum sticker surfaces
- * - Precision-machined seam lines (hair-thin, barely visible)
- * - Dramatic product photography lighting
- * - Restrained emerald accent on edges only
+ * Luxury Technology Artifact
  *
- * References: Apple hardware, Nothing design, Teenage Engineering, Linear
+ * Material Palette:
+ *   Primary Surface — Graphite Black #1A1A1D
+ *   Secondary Surface — Dark Titanium #2B2E34
+ *   Edge Highlights — Gunmetal #4A4F58
+ *   Accent — Soft Emerald #64FFDA (restrained)
+ *
+ * The cube should feel like a proprietary product symbol.
+ * Clearly distinguishable from #050505 background.
+ * Engineered. Premium. Architectural. Intentional.
+ *
+ * References: Apple hardware, Nothing, Teenage Engineering, Linear
  */
 
-// Material palette
+// Material palette — lifted from background for clear visibility
 const MATERIALS = {
-  // Cubie body — matte black ceramic
-  body: "#080808",
-  // Outer face seam — precision-machined edge, barely visible
-  seamOuter: "rgba(255, 255, 255, 0.05)",
-  // Inner face seam — darker, recessed gap between cubies
-  seamInner: "rgba(0, 0, 0, 0.9)",
-  // Sticker edge border — machined chamfer catching light
-  chamferLight: "rgba(255, 255, 255, 0.07)",
-  // Active face highlight — soft emerald accent, very restrained
-  accentEdge: "rgba(100, 255, 218, 0.12)",
-  // Shadow beneath and between cubies
-  depthShadow: "rgba(0, 0, 0, 0.7)",
+  body: "#15171C",
+  bodyInner: "#0A0B0D",
+
+  seamHighlight: "rgba(255,255,255,0.18)",
+  seamRecessed: "rgba(0,0,0,0.8)",
+
+  chamfer: "rgba(255,255,255,0.22)",
+
+  emeraldSeam: "rgba(100,255,218,0.45)",
+
+  ambientOcclusion: "rgba(0,0,0,0.7)",
+
+  glowPrimary: "#64FFDA",
+  glowSecondary: "#4DFFD6",
+
+  accentReflection: "rgba(100,255,218,0.25)"
 };
+
 
 export default function MirrorCube({
   size = 160,
@@ -113,26 +123,58 @@ export default function MirrorCube({
   const stickerInset = Math.max(0.5, size * 0.014);
   const stickerBorderRadius = Math.max(0.5, size * 0.008);
 
-  // Determine which edges of a face sit on the outside of the cube
-  // and should get a subtle rim highlight
-  const getEdgeHighlights = (
+  // Build edge-specific rim lighting and emerald accent seams
+  // Simulates directional studio lighting on a physical object
+  const getEdgeLighting = (
     i: number,
     j: number,
-    _k: number,
-    face: string
+    k: number,
+    face: string,
+    active: boolean
   ) => {
-    const highlights: string[] = [];
+    const shadows: string[] = [];
 
-    // Top edge highlight — only on the topmost visible faces
-    if (j === 2 && (face === "front" || face === "back" || face === "left" || face === "right")) {
-      highlights.push("inset 0 0.5px 0 rgba(255, 255, 255, 0.08)");
-    }
-    // Right edge highlight — rightmost column catches rim light
-    if (i === 2 && (face === "front" || face === "back" || face === "top" || face === "bottom")) {
-      highlights.push("inset -0.5px 0 0 rgba(255, 255, 255, 0.05)");
+    if (active) {
+      // Ambient occlusion — soft depth within each face
+      shadows.push(
+        `inset 0 0 ${Math.max(3, size * 0.025)}px ${MATERIALS.ambientOcclusion}`
+      );
+
+      // Top faces get a stronger top-edge rim highlight (key light from above)
+      if (
+        j === 2 &&
+        (face === "front" || face === "back" || face === "left" || face === "right")
+      ) {
+        shadows.push("inset 0 1px 0 rgba(255, 255, 255, 0.12)");
+      }
+
+      // Right-column faces get a side rim highlight
+      if (
+        i === 2 &&
+        (face === "front" || face === "back" || face === "top" || face === "bottom")
+      ) {
+        shadows.push("inset -1px 0 0 rgba(255, 255, 255, 0.07)");
+      }
+
+      // Top-right corner cubies get emerald accent reflection
+      if (
+        (i === 2 && j === 2) ||
+        (i === 2 && k === 2 && face === "right") ||
+        (j === 2 && k === 2 && face === "top")
+      ) {
+        shadows.push(`inset 0 0 ${Math.max(2, size * 0.015)}px ${MATERIALS.emeraldSeam}`);
+      }
+
+      // Front-facing faces on the front layer get very subtle emerald edge
+      if (k === 2 && face === "front") {
+        shadows.push("inset 0 -0.5px 0 rgba(100, 255, 218, 0.08)");
+      }
+    } else {
+      // Internal faces — deep ambient occlusion
+      shadows.push(`inset 0 0 4px rgba(0, 0, 0, 0.7)`);
     }
 
-    return highlights.join(", ");
+    return shadows.join(", ");
   };
 
   // Cubie rendering
@@ -167,19 +209,7 @@ export default function MirrorCube({
       brushDir: "h" | "v"
     ) => {
       const active = isOuterFace(face);
-      const edgeHighlights = getEdgeHighlights(i, j, k, face);
-
-      // Build box-shadow for this face
-      const shadows: string[] = [];
-      if (active) {
-        // Subtle depth shadow within the face
-        shadows.push(`inset 0 0 ${Math.max(2, size * 0.02)}px ${MATERIALS.depthShadow}`);
-        // Very faint emerald accent glow along edges
-        shadows.push(`inset 0 0 ${Math.max(1, size * 0.008)}px ${MATERIALS.accentEdge}`);
-      } else {
-        shadows.push(`inset 0 0 3px ${MATERIALS.depthShadow}`);
-      }
-      if (edgeHighlights) shadows.push(edgeHighlights);
+      const edgeLighting = getEdgeLighting(i, j, k, face, active);
 
       return (
         <div
@@ -194,21 +224,20 @@ export default function MirrorCube({
             top: "50%",
             transform: transformStr,
             backfaceVisibility: "hidden",
-            // Matte black ceramic body
-            backgroundColor: MATERIALS.body,
-            // Precision seam lines — hair-thin
+            // Graphite body — clearly above #050505 background
+            backgroundColor: active ? MATERIALS.body : MATERIALS.bodyInner,
+            // Precision seam lines — gunmetal on outer, dark on inner
             border: active
-              ? `0.5px solid ${MATERIALS.chamferLight}`
-              : `0.5px solid ${MATERIALS.seamInner}`,
+              ? `0.5px solid ${MATERIALS.chamfer}`
+              : `0.5px solid ${MATERIALS.seamRecessed}`,
             borderRadius: `${faceBorderRadius}px`,
-            boxShadow: shadows.join(", "),
+            boxShadow: edgeLighting,
           }}
         >
           {active && (
             <div
-              className={`mirror-sticker ${
-                brushDir === "h" ? "mirror-sticker-h" : "mirror-sticker-v"
-              }`}
+              className={`mirror-sticker ${brushDir === "h" ? "mirror-sticker-h" : "mirror-sticker-v"
+                }`}
               style={{
                 position: "absolute",
                 top: `${stickerInset}px`,
@@ -293,19 +322,25 @@ export default function MirrorCube({
         userSelect: "none",
       }}
     >
-      {/* Ambient shadow — dramatic product photography lighting */}
+      {/* Ambient emerald glow — product photography key light */}
       <div
         className="cube-core-glow"
         style={{ width: `${size * 1.8}px`, height: `${size * 1.8}px` }}
       />
 
-      {/* Emerald rim light — restrained accent, positioned top-right */}
+      {/* Primary rim light — top-right emerald accent */}
       <div
         className="cube-rim-light"
+        style={{ width: `${size * 2.2}px`, height: `${size * 2.2}px` }}
+      />
+
+      {/* Secondary rim light — bottom-left warm fill */}
+      <div
+        className="cube-rim-light-secondary"
         style={{ width: `${size * 2}px`, height: `${size * 2}px` }}
       />
 
-      {/* Drop shadow beneath the cube */}
+      {/* Drop shadow — grounds the object in space */}
       <div className="cube-drop-shadow" />
 
       {/* 3D Rotation Container */}
@@ -319,9 +354,9 @@ export default function MirrorCube({
         animate={
           mode === "interactive"
             ? {
-                rotateX: rotation.x,
-                rotateY: rotation.y,
-              }
+              rotateX: rotation.x,
+              rotateY: rotation.y,
+            }
             : {}
         }
         transition={
