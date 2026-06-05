@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import MirrorCube from "./MirrorCube";
+import { useCubeContext } from "./CubeController";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -20,12 +21,24 @@ const container = {
 };
 
 export default function Hero() {
+  const {
+    activeSection,
+    hoveredProjectIndex,
+    isHovered,
+    isClicked,
+    setIsHovered,
+    triggerClick,
+    gyroRotation,
+    gyroAvailable,
+  } = useCubeContext();
+
   return (
     <motion.section
       initial="hidden"
       animate="show"
       variants={container}
       className="hero"
+      id="hero"
     >
       <div className="hero-grid">
         {/* Left Side: Editorial Typography */}
@@ -58,13 +71,25 @@ export default function Hero() {
           </motion.div>
         </div>
 
-        {/* Right Side: The Rubik's Cube */}
-        <div className="hero-cube-wrapper">
+        {/* Right Side: The Rubik's Cube — with interaction awareness */}
+        <div
+          className="hero-cube-wrapper"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          onClick={() => triggerClick()}
+          style={{ pointerEvents: "auto", cursor: "default" }}
+        >
           <motion.div variants={fadeUp}>
             <MirrorCube
               size={170}
               mode="interactive"
               className="animate-float"
+              activeSection={activeSection}
+              hoveredProjectIndex={hoveredProjectIndex}
+              isHovered={isHovered}
+              isClicked={isClicked}
+              gyroRotation={gyroRotation}
+              gyroAvailable={gyroAvailable}
             />
           </motion.div>
         </div>

@@ -1,7 +1,10 @@
 import { motion } from "framer-motion";
 import type { Project } from "../types";
+import { useCubeContext } from "./CubeController";
 
-type Props = Project;
+type Props = Project & {
+  index: number;
+};
 
 const itemVariants = {
   hidden: { opacity: 0, y: 24 },
@@ -19,9 +22,17 @@ export default function ProjectItem({
   challenge,
   solution,
   outcome,
+  index,
 }: Props) {
+  const { setHoveredProjectIndex } = useCubeContext();
+
   return (
-    <motion.article variants={itemVariants} className="project-card">
+    <motion.article
+      variants={itemVariants}
+      className="project-card"
+      onMouseEnter={() => setHoveredProjectIndex(index)}
+      onMouseLeave={() => setHoveredProjectIndex(null)}
+    >
       <h3 className="project-title">{title}</h3>
 
       <div className="project-meta">

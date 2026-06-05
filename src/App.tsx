@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { CubeProvider } from "./components/CubeController";
 import Hero from "./components/Hero";
 import Builder from "./components/Builder";
 import Work from "./sections/Work";
@@ -43,6 +44,7 @@ export default function App() {
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
   return (
+    <CubeProvider>
     <main
       style={{
         position: "relative",
@@ -152,5 +154,6 @@ export default function App() {
         </p>
       </footer>
     </main>
+    </CubeProvider>
   );
 }

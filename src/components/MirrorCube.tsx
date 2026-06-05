@@ -1,11 +1,18 @@
-import { motion, useAnimationFrame } from "framer-motion";
-import { useEffect, useState } from "react";
+import { motion, useAnimationFrame, useAnimation } from "framer-motion";
+import { useEffect, useState, useRef, useCallback } from "react";
 
 interface MirrorCubeProps {
   size?: number;
   mode: "interactive" | "turned" | "nearly-solved" | "solved";
   autoPlay?: boolean;
   className?: string;
+  // Interaction-awareness props (from CubeController context)
+  activeSection?: string;
+  hoveredProjectIndex?: number | null;
+  isHovered?: boolean;
+  isClicked?: boolean;
+  gyroRotation?: { alpha: number; beta: number; gamma: number } | null;
+  gyroAvailable?: boolean;
 }
 
 /*
@@ -44,17 +51,69 @@ const MATERIALS = {
   accentReflection: "rgba(100,255,218,0.25)"
 };
 
+// --- Section-level slice rotation offsets ---
+// Each section maps to subtle structural adjustments
+const SECTION_OFFSETS: Record<string, { top: number; mid: number; bot: number }> = {
+  hero:    { top: 0,  mid: 0,   bot: 0 },
+  builder: { top: 8,  mid: -3,  bot: 2 },
+  work:    { top: 18, mid: -10, bot: 6 },
+  chapter: { top: 5,  mid: -2,  bot: 1 },
+  tools:   { top: 12, mid: -6,  bot: 4 },
+  beyond:  { top: 10, mid: -5,  bot: 3 },
+  contact: { top: 0,  mid: 0,   bot: 0 },
+};
+
+// --- Project hover rotation offsets ---
+// Each project triggers a unique cube configuration
+const PROJECT_OFFSETS = [
+  { top: 12,  mid: -4, bot: 2 },
+  { top: -6,  mid: 8,  bot: -3 },
+  { top: 4,   mid: 4,  bot: 8 },
+];
+
+// Spring-interpolation helper (framerate-independent lerp)
+function springLerp(current: number, target: number, factor: number): number {
+  return current + (target - current) * factor;
+}
+
 
 export default function MirrorCube({
   size = 160,
   mode,
   autoPlay = true,
   className = "",
+  activeSection = "hero",
+  hoveredProjectIndex = null,
+  isHovered = false,
+  isClicked = false,
+  gyroRotation = null,
+  gyroAvailable = false,
 }: MirrorCubeProps) {
-  const [rotation, setRotation] = useState({ x: -20, y: 45 });
   const [time, setTime] = useState(0);
 
-  // Mouse tracking — smooth, deliberate response
+  // --- Spring-physics cursor tracking ---
+  // Instead of direct setState, we track target and interpolate smoothly
+  const mouseTargetRef = useRef({ x: -20, y: 45 });
+  const currentRotationRef = useRef({ x: -20, y: 45 });
+  const [smoothRotation, setSmoothRotation] = useState({ x: -20, y: 45 });
+
+  // --- Idle timer for discovery micro-rotation ---
+  const lastInteractionRef = useRef(Date.now());
+  const idleMicroRotationRef = useRef(0);
+
+  // --- Internal face depth pulse ---
+  const [internalPulse, setInternalPulse] = useState(0.7);
+
+  // --- Click animation controls ---
+  const topSliceControls = useAnimation();
+  const clickAnimatingRef = useRef(false);
+  const rotTopRef = useRef(0);
+
+  // --- Hover state transitions ---
+  const [hoverIntensity, setHoverIntensity] = useState(0);
+  const hoverIntensityRef = useRef(0);
+
+  // Mouse tracking — capture target, not direct rotation
   useEffect(() => {
     if (mode !== "interactive") return;
 
@@ -62,22 +121,108 @@ export default function MirrorCube({
       const normX = e.clientX / window.innerWidth - 0.5;
       const normY = e.clientY / window.innerHeight - 0.5;
 
-      setRotation({
-        x: -22 + normY * 30,
-        y: 40 + normX * 40,
-      });
+      // Max ±10° rotation from center — premium, restrained
+      mouseTargetRef.current = {
+        x: -20 + normY * 20,
+        y: 45 + normX * 20,
+      };
+
+      lastInteractionRef.current = Date.now();
     };
 
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, [mode]);
 
-  // Breathing twist animation
+  // Main animation frame — spring physics, idle detection, internal pulse
   useAnimationFrame((t) => {
-    if (mode === "interactive" && autoPlay) {
+    if (mode !== "interactive") return;
+
+    if (autoPlay) {
       setTime(t / 1000);
     }
+
+    // --- Spring-physics interpolation ---
+    // Spring factor 0.07 creates premium, weighty feel while remaining responsive
+    const springFactor = 0.07;
+    let targetX = mouseTargetRef.current.x;
+    let targetY = mouseTargetRef.current.y;
+
+    // Gyroscope overrides mouse on mobile
+    if (gyroAvailable && gyroRotation) {
+      // Map beta (front-back tilt, -180 to 180) to ±10° cube rotateX
+      // Map gamma (left-right tilt, -90 to 90) to ±10° cube rotateY
+      const gyroBeta = Math.max(-10, Math.min(10, gyroRotation.beta * 0.15));
+      const gyroGamma = Math.max(-10, Math.min(10, gyroRotation.gamma * 0.25));
+      targetX = -20 + gyroBeta;
+      targetY = 45 + gyroGamma;
+    }
+
+    currentRotationRef.current = {
+      x: springLerp(currentRotationRef.current.x, targetX, springFactor),
+      y: springLerp(currentRotationRef.current.y, targetY, springFactor),
+    };
+
+    setSmoothRotation({ ...currentRotationRef.current });
+
+    // --- Hover intensity interpolation ---
+    const hoverTarget = isHovered ? 1 : 0;
+    hoverIntensityRef.current = springLerp(
+      hoverIntensityRef.current,
+      hoverTarget,
+      0.06
+    );
+    // Only update state when meaningfully different
+    if (Math.abs(hoverIntensityRef.current - hoverIntensity) > 0.005) {
+      setHoverIntensity(hoverIntensityRef.current);
+    }
+
+    // --- Internal face depth pulse (12s cycle) ---
+    const pulseValue = 0.7 + 0.15 * Math.sin((t / 1000) * (Math.PI / 6));
+    setInternalPulse(pulseValue);
+
+    // --- Idle micro-rotation (after 30s of no interaction) ---
+    const idleTime = Date.now() - lastInteractionRef.current;
+    if (idleTime > 30000) {
+      // Very slow 2° micro-rotation on middle slice, 20s cycle
+      idleMicroRotationRef.current =
+        2 * Math.sin(((t / 1000) * Math.PI) / 10);
+    } else {
+      idleMicroRotationRef.current = springLerp(
+        idleMicroRotationRef.current,
+        0,
+        0.02
+      );
+    }
   });
+
+  // --- Click interaction: controlled mechanical movement ---
+  const handleClick = useCallback(async () => {
+    if (mode !== "interactive" || clickAnimatingRef.current) return;
+    clickAnimatingRef.current = true;
+    lastInteractionRef.current = Date.now();
+
+    // Top slice: quick rotation to +90°, then smooth return
+    await topSliceControls.start({
+      rotateY: 90,
+      transition: { type: "spring", stiffness: 60, damping: 18 },
+    });
+
+    await topSliceControls.start({
+      rotateY: 0,
+      transition: { type: "spring", stiffness: 45, damping: 30 },
+    });
+
+    clickAnimatingRef.current = false;
+  }, [mode, topSliceControls]);
+
+  // Trigger click animation when isClicked changes to true
+  useEffect(() => {
+    if (isClicked) {
+      handleClick();
+    }
+  }, [isClicked, handleClick]);
+
 
   // Mirror Block proportions (20%, 30%, 50%)
   const p = [0.2, 0.3, 0.5];
@@ -88,13 +233,14 @@ export default function MirrorCube({
   const posZ = [-size * 0.4, -size * 0.15, size * 0.25];
   const posY = [size * 0.25, -size * 0.15, -size * 0.4];
 
-  // Slice rotation angles per mode
+  // --- Compute slice rotations ---
   let rotTop = 0;
   let rotMiddle = 0;
   let rotBottom = 0;
 
   if (mode === "interactive") {
     if (autoPlay) {
+      // Breathing twist animation (preserved from original)
       const cycle = time * 0.5;
       const alignmentWave = Math.sin(cycle / 2) * Math.sin(cycle / 2);
       rotTop = Math.sin(cycle) * 45 * alignmentWave;
@@ -105,6 +251,25 @@ export default function MirrorCube({
       rotMiddle = -20;
       rotBottom = 10;
     }
+
+    // --- Section-level offsets (added to breathing) ---
+    const sectionOffset = SECTION_OFFSETS[activeSection] || SECTION_OFFSETS.hero;
+
+    // --- Project hover overrides section offsets while active ---
+    if (hoveredProjectIndex !== null && hoveredProjectIndex !== undefined) {
+      const projOffset =
+        PROJECT_OFFSETS[hoveredProjectIndex % PROJECT_OFFSETS.length];
+      rotTop += projOffset.top;
+      rotMiddle += projOffset.mid;
+      rotBottom += projOffset.bot;
+    } else {
+      rotTop += sectionOffset.top;
+      rotMiddle += sectionOffset.mid;
+      rotBottom += sectionOffset.bot;
+    }
+
+    // --- Idle micro-rotation on middle slice ---
+    rotMiddle += idleMicroRotationRef.current;
   } else if (mode === "turned") {
     rotTop = 30;
     rotMiddle = -18;
@@ -119,9 +284,32 @@ export default function MirrorCube({
     rotBottom = 0;
   }
 
+  // --- Sync top slice controls with computed rotTop ---
+  // (must be after rotTop computation for correct value)
+  if (rotTopRef.current !== rotTop) {
+    rotTopRef.current = rotTop;
+    if (!clickAnimatingRef.current) {
+      topSliceControls.start({
+        rotateY: rotTop,
+        transition:
+          mode === "interactive"
+            ? hoveredProjectIndex !== null
+              ? { type: "spring", stiffness: 40, damping: 28 }
+              : { type: "spring", stiffness: 25, damping: 35 }
+            : { duration: 0.3 },
+      });
+    }
+  }
+
   const faceBorderRadius = Math.max(0.5, size * 0.01);
   const stickerInset = Math.max(0.5, size * 0.014);
   const stickerBorderRadius = Math.max(0.5, size * 0.008);
+
+  // --- Hover-enhanced chamfer and emerald seam opacity ---
+  const chamferOpacity = 0.22 + hoverIntensity * 0.18;
+  const emeraldSeamOpacity = 0.45 + hoverIntensity * 0.30;
+  const chamferHover = `rgba(255,255,255,${chamferOpacity.toFixed(3)})`;
+  const emeraldSeamHover = `rgba(100,255,218,${emeraldSeamOpacity.toFixed(3)})`;
 
   // Build edge-specific rim lighting and emerald accent seams
   // Simulates directional studio lighting on a physical object
@@ -157,12 +345,13 @@ export default function MirrorCube({
       }
 
       // Top-right corner cubies get emerald accent reflection
+      // Uses hover-enhanced opacity
       if (
         (i === 2 && j === 2) ||
         (i === 2 && k === 2 && face === "right") ||
         (j === 2 && k === 2 && face === "top")
       ) {
-        shadows.push(`inset 0 0 ${Math.max(2, size * 0.015)}px ${MATERIALS.emeraldSeam}`);
+        shadows.push(`inset 0 0 ${Math.max(2, size * 0.015)}px ${emeraldSeamHover}`);
       }
 
       // Front-facing faces on the front layer get very subtle emerald edge
@@ -170,8 +359,8 @@ export default function MirrorCube({
         shadows.push("inset 0 -0.5px 0 rgba(100, 255, 218, 0.08)");
       }
     } else {
-      // Internal faces — deep ambient occlusion
-      shadows.push(`inset 0 0 4px rgba(0, 0, 0, 0.7)`);
+      // Internal faces — deep ambient occlusion with depth pulse
+      shadows.push(`inset 0 0 4px rgba(0, 0, 0, ${internalPulse.toFixed(2)})`);
     }
 
     return shadows.join(", ");
@@ -226,9 +415,9 @@ export default function MirrorCube({
             backfaceVisibility: "hidden",
             // Graphite body — clearly above #050505 background
             backgroundColor: active ? MATERIALS.body : MATERIALS.bodyInner,
-            // Precision seam lines — gunmetal on outer, dark on inner
+            // Precision seam lines — hover-enhanced chamfer on outer, dark on inner
             border: active
-              ? `0.5px solid ${MATERIALS.chamfer}`
+              ? `0.5px solid ${chamferHover}`
               : `0.5px solid ${MATERIALS.seamRecessed}`,
             borderRadius: `${faceBorderRadius}px`,
             boxShadow: edgeLighting,
@@ -307,6 +496,12 @@ export default function MirrorCube({
     );
   };
 
+  // --- Hover filter style ---
+  const hoverFilter =
+    hoverIntensity > 0.01
+      ? `contrast(${(1 + hoverIntensity * 0.15).toFixed(4)}) brightness(${(1 + hoverIntensity * 0.08).toFixed(4)})`
+      : "none";
+
   return (
     <div
       className={className}
@@ -320,6 +515,9 @@ export default function MirrorCube({
         perspective: `${size * 5.5}px`,
         pointerEvents: "none",
         userSelect: "none",
+        // Hover-driven filter — subtle clarity increase
+        filter: hoverFilter,
+        transition: "filter 400ms cubic-bezier(0.16, 1, 0.3, 1)",
       }}
     >
       {/* Ambient emerald glow — product photography key light */}
@@ -343,7 +541,7 @@ export default function MirrorCube({
       {/* Drop shadow — grounds the object in space */}
       <div className="cube-drop-shadow" />
 
-      {/* 3D Rotation Container */}
+      {/* 3D Rotation Container — spring-physics driven via manual lerp */}
       <motion.div
         style={{
           position: "relative",
@@ -354,14 +552,14 @@ export default function MirrorCube({
         animate={
           mode === "interactive"
             ? {
-              rotateX: rotation.x,
-              rotateY: rotation.y,
+              rotateX: smoothRotation.x,
+              rotateY: smoothRotation.y,
             }
             : {}
         }
         transition={
           mode === "interactive"
-            ? { type: "spring", stiffness: 45, damping: 30 }
+            ? { duration: 0 }
             : {}
         }
       >
@@ -374,19 +572,15 @@ export default function MirrorCube({
             transformStyle: "preserve-3d",
           }}
         >
-          {/* TOP SLICE (j = 2) */}
+          {/* TOP SLICE (j = 2) — click animation controlled */}
           <motion.div
             style={{
               position: "absolute",
               inset: 0,
               transformStyle: "preserve-3d",
             }}
-            animate={{ rotateY: rotTop }}
-            transition={
-              mode === "interactive"
-                ? { type: "spring", stiffness: 45, damping: 30 }
-                : { duration: 0.3 }
-            }
+            animate={topSliceControls}
+            initial={{ rotateY: 0 }}
           >
             {[0, 1, 2].map((i) =>
               [0, 1, 2].map((k) => renderCubie(i, 2, k))
@@ -403,7 +597,9 @@ export default function MirrorCube({
             animate={{ rotateY: rotMiddle }}
             transition={
               mode === "interactive"
-                ? { type: "spring", stiffness: 45, damping: 30 }
+                ? hoveredProjectIndex !== null
+                  ? { type: "spring", stiffness: 40, damping: 28 }
+                  : { type: "spring", stiffness: 25, damping: 35 }
                 : { duration: 0.3 }
             }
           >
@@ -422,7 +618,9 @@ export default function MirrorCube({
             animate={{ rotateY: rotBottom }}
             transition={
               mode === "interactive"
-                ? { type: "spring", stiffness: 45, damping: 30 }
+                ? hoveredProjectIndex !== null
+                  ? { type: "spring", stiffness: 40, damping: 28 }
+                  : { type: "spring", stiffness: 25, damping: 35 }
                 : { duration: 0.3 }
             }
           >

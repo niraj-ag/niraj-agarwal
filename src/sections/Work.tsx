@@ -42,7 +42,7 @@ export default function Work() {
 
         <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", marginTop: "3rem" }}>
           {projects.map((project, index) => (
-            <ProjectItem key={index} {...project} />
+            <ProjectItem key={index} index={index} {...project} />
           ))}
         </div>
       </motion.div>
