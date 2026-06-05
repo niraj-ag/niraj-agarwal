@@ -30,7 +30,14 @@ export default function Hero() {
     triggerClick,
     gyroRotation,
     gyroAvailable,
+    requestGyroPermission,
   } = useCubeContext();
+
+  const handleCubeInteraction = () => {
+    triggerClick();
+    // iOS requires gyro permission from a user gesture — first tap triggers it
+    requestGyroPermission();
+  };
 
   return (
     <motion.section
@@ -76,7 +83,8 @@ export default function Hero() {
           className="hero-cube-wrapper"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          onClick={() => triggerClick()}
+          onClick={handleCubeInteraction}
+          onTouchStart={requestGyroPermission}
           style={{ pointerEvents: "auto", cursor: "default" }}
         >
           <motion.div variants={fadeUp}>

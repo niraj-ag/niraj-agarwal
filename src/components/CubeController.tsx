@@ -46,6 +46,7 @@ interface CubeContextValue {
   triggerClick: () => void;
   gyroRotation: GyroRotation | null;
   gyroAvailable: boolean;
+  requestGyroPermission: () => void;
 }
 
 const CubeContext = createContext<CubeContextValue | null>(null);
@@ -70,7 +71,8 @@ const SECTION_IDS: ActiveSection[] = [
 ];
 
 // Exponential moving average smoothing factor for gyroscope
-const GYRO_SMOOTHING = 0.08;
+// 0.18 balances responsiveness with smooth, premium feel
+const GYRO_SMOOTHING = 0.18;
 
 export function CubeProvider({ children }: { children: ReactNode }) {
   const [activeSection, setActiveSection] = useState<ActiveSection>("hero");
@@ -84,6 +86,9 @@ export function CubeProvider({ children }: { children: ReactNode }) {
 
   const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const smoothedGyroRef = useRef<GyroRotation>({ alpha: 0, beta: 0, gamma: 0 });
+  const gyroBaselineRef = useRef<{ beta: number; gamma: number } | null>(null);
+  const gyroListeningRef = useRef(false);
+  const gyroPermissionRequestedRef = useRef(false);
 
   // --- Click with auto-reset ---
   const triggerClick = useCallback(() => {
@@ -134,14 +139,78 @@ export function CubeProvider({ children }: { children: ReactNode }) {
     return () => observer.disconnect();
   }, []);
 
-  // --- Mobile gyroscope support ---
-  useEffect(() => {
-    // Check if DeviceOrientationEvent is available
+  // --- Gyroscope orientation handler ---
+  const handleOrientation = useCallback((e: DeviceOrientationEvent) => {
+    if (e.beta === null || e.gamma === null) return;
+
+    // Capture baseline on first valid reading
+    // This calibrates to however the user is holding their phone
+    if (!gyroBaselineRef.current) {
+      gyroBaselineRef.current = { beta: e.beta, gamma: e.gamma };
+      smoothedGyroRef.current = { alpha: e.alpha || 0, beta: 0, gamma: 0 };
+    }
+
+    setGyroAvailable(true);
+
+    // Compute relative tilt from baseline (how phone was first held)
+    const relativeBeta = e.beta - gyroBaselineRef.current.beta;
+    const relativeGamma = e.gamma - gyroBaselineRef.current.gamma;
+
+    // Apply exponential moving average smoothing
+    const prev = smoothedGyroRef.current;
+    smoothedGyroRef.current = {
+      alpha: prev.alpha + GYRO_SMOOTHING * ((e.alpha || 0) - prev.alpha),
+      beta: prev.beta + GYRO_SMOOTHING * (relativeBeta - prev.beta),
+      gamma: prev.gamma + GYRO_SMOOTHING * (relativeGamma - prev.gamma),
+    };
+
+    setGyroRotation({ ...smoothedGyroRef.current });
+  }, []);
+
+  // --- Start listening for gyro events (non-iOS or after permission) ---
+  const startGyroListening = useCallback(() => {
+    if (gyroListeningRef.current) return;
+    gyroListeningRef.current = true;
+    window.addEventListener("deviceorientation", handleOrientation);
+  }, [handleOrientation]);
+
+  // --- Request gyro permission (must be called from user gesture for iOS) ---
+  const requestGyroPermission = useCallback(() => {
+    if (gyroPermissionRequestedRef.current) return;
+    gyroPermissionRequestedRef.current = true;
+
     if (typeof window === "undefined" || !("DeviceOrientationEvent" in window)) {
       return;
     }
 
-    // Detect if we're on mobile/tablet
+    const DOE = DeviceOrientationEvent as unknown as {
+      requestPermission?: () => Promise<string>;
+    };
+
+    if (typeof DOE.requestPermission === "function") {
+      // iOS 13+ — must be called from a user gesture (tap/click)
+      DOE.requestPermission()
+        .then((permission) => {
+          if (permission === "granted") {
+            startGyroListening();
+          }
+        })
+        .catch(() => {
+          // Permission denied — fail silently
+        });
+    } else {
+      // Android / non-iOS — just start listening
+      startGyroListening();
+    }
+  }, [startGyroListening]);
+
+  // --- Auto-start gyro on Android (no permission needed) ---
+  useEffect(() => {
+    if (typeof window === "undefined" || !("DeviceOrientationEvent" in window)) {
+      return;
+    }
+
+    // Detect mobile
     const isMobileDevice =
       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
         navigator.userAgent
@@ -149,49 +218,19 @@ export function CubeProvider({ children }: { children: ReactNode }) {
 
     if (!isMobileDevice) return;
 
-    const handleOrientation = (e: DeviceOrientationEvent) => {
-      if (e.alpha === null || e.beta === null || e.gamma === null) return;
-
-      setGyroAvailable(true);
-
-      // Apply exponential moving average smoothing
-      const prev = smoothedGyroRef.current;
-      smoothedGyroRef.current = {
-        alpha: prev.alpha + GYRO_SMOOTHING * (e.alpha - prev.alpha),
-        beta: prev.beta + GYRO_SMOOTHING * (e.beta - prev.beta),
-        gamma: prev.gamma + GYRO_SMOOTHING * (e.gamma - prev.gamma),
-      };
-
-      setGyroRotation({ ...smoothedGyroRef.current });
+    const DOE = DeviceOrientationEvent as unknown as {
+      requestPermission?: () => Promise<string>;
     };
 
-    // iOS 13+ requires permission request
-    const requestPermission = async () => {
-      const DOE = DeviceOrientationEvent as unknown as {
-        requestPermission?: () => Promise<string>;
-      };
-
-      if (typeof DOE.requestPermission === "function") {
-        try {
-          const permission = await DOE.requestPermission();
-          if (permission === "granted") {
-            window.addEventListener("deviceorientation", handleOrientation);
-          }
-        } catch {
-          // Permission denied or unavailable — fail silently
-        }
-      } else {
-        // Non-iOS — just listen
-        window.addEventListener("deviceorientation", handleOrientation);
-      }
-    };
-
-    requestPermission();
+    // Only auto-start on non-iOS (Android etc.) — iOS needs user gesture
+    if (typeof DOE.requestPermission !== "function") {
+      startGyroListening();
+    }
 
     return () => {
       window.removeEventListener("deviceorientation", handleOrientation);
     };
-  }, []);
+  }, [startGyroListening, handleOrientation]);
 
   // Cleanup click timeout on unmount
   useEffect(() => {
@@ -214,6 +253,7 @@ export function CubeProvider({ children }: { children: ReactNode }) {
         triggerClick,
         gyroRotation,
         gyroAvailable,
+        requestGyroPermission,
       }}
     >
       {children}

@@ -150,10 +150,10 @@ export default function MirrorCube({
 
     // Gyroscope overrides mouse on mobile
     if (gyroAvailable && gyroRotation) {
-      // Map beta (front-back tilt, -180 to 180) to ±10° cube rotateX
-      // Map gamma (left-right tilt, -90 to 90) to ±10° cube rotateY
-      const gyroBeta = Math.max(-10, Math.min(10, gyroRotation.beta * 0.15));
-      const gyroGamma = Math.max(-10, Math.min(10, gyroRotation.gamma * 0.25));
+      // gyroRotation.beta/gamma are now relative tilt from how user first held phone
+      // Map relative tilt to ±12° cube rotation — clearly perceptible
+      const gyroBeta = Math.max(-12, Math.min(12, gyroRotation.beta * 0.6));
+      const gyroGamma = Math.max(-12, Math.min(12, gyroRotation.gamma * 0.8));
       targetX = -20 + gyroBeta;
       targetY = 45 + gyroGamma;
     }
