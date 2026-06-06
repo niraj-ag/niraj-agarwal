@@ -3,15 +3,15 @@ import { motion } from "framer-motion";
 const links = [
   {
     label: "GitHub",
-    href: "https://github.com/niraj",
+    href: "https://github.com/niraj-ag",
   },
   {
     label: "LinkedIn",
-    href: "https://linkedin.com/in/niraj",
+    href: "https://www.linkedin.com/in/nirajagarwal7/",
   },
   {
     label: "Email",
-    href: "mailto:niraj@example.com",
+    href: "mailto:niraj.ku.agarwal@gmail.com",
   },
   {
     label: "Resume",
