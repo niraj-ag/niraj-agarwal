@@ -22,6 +22,7 @@ export default function ProjectItem({
   challenge,
   solution,
   outcome,
+  link,
   index,
 }: Props) {
   const { setHoveredProjectIndex } = useCubeContext();
@@ -33,7 +34,20 @@ export default function ProjectItem({
       onMouseEnter={() => setHoveredProjectIndex(index)}
       onMouseLeave={() => setHoveredProjectIndex(null)}
     >
-      <h3 className="project-title">{title}</h3>
+      <div className="project-header">
+        <h3 className="project-title">{title}</h3>
+        {link && (
+          <a
+            href={link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="project-link"
+          >
+            <span>Live Project</span>
+            <span className="project-link-arrow">↗</span>
+          </a>
+        )}
+      </div>
 
       <div className="project-meta">
         <span className="project-label">Context</span>

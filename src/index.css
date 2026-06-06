@@ -477,13 +477,62 @@ img, video {
   border-color: var(--border-hover);
 }
 
+.project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
 .project-title {
   font-family: var(--font-display);
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--text-primary);
-  margin-bottom: 2rem;
+  margin-bottom: 0;
+}
+
+.project-link {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  transition: all 0.3s var(--ease-out);
+  border: 1px solid var(--accent-dim);
+  background: rgba(100, 255, 218, 0.03);
+  padding: 0.45rem 1rem;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.project-link:hover {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  box-shadow: 0 0 15px rgba(100, 255, 218, 0.08);
+  transform: translateY(-1px);
+}
+
+.project-link-arrow {
+  font-size: 0.7rem;
+  transition: transform 0.3s var(--ease-out);
+}
+
+.project-link:hover .project-link-arrow {
+  transform: translate(2px, -2px);
+}
+
+@media (max-width: 640px) {
+  .project-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
 }
 
 .project-meta {
