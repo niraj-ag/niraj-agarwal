@@ -15,21 +15,13 @@ interface MirrorCubeProps {
   gyroAvailable?: boolean;
 }
 
-/*
- * Luxury Technology Artifact
- *
- * Material Palette:
- *   Primary Surface — Graphite Black #1A1A1D
- *   Secondary Surface — Dark Titanium #2B2E34
- *   Edge Highlights — Gunmetal #4A4F58
- *   Accent — Soft Emerald #64FFDA (restrained)
- *
- * The cube should feel like a proprietary product symbol.
- * Clearly distinguishable from #050505 background.
- * Engineered. Premium. Architectural. Intentional.
- *
- * References: Apple hardware, Nothing, Teenage Engineering, Linear
- */
+
+// Premium three-tier electric-blue lighting system
+const BLUE = {
+  bright: "#6EC6FF",   // specular highlights — brightest
+  primary: "#4DA6FF",  // glow source — primary accent
+  deep: "#1F7CFF",     // depth and rim lighting — deepest
+};
 
 // Material palette — lifted from background for clear visibility
 const MATERIALS = {
@@ -41,14 +33,14 @@ const MATERIALS = {
 
   chamfer: "rgba(255,255,255,0.22)",
 
-  emeraldSeam: "rgba(100,255,218,0.45)",
+  blueSeam: "rgba(77,166,255,0.65)",
 
   ambientOcclusion: "rgba(0,0,0,0.7)",
 
-  glowPrimary: "#64FFDA",
-  glowSecondary: "#4DFFD6",
+  glowPrimary: "#4DA6FF",
+  glowSecondary: "#1F7CFF",
 
-  accentReflection: "rgba(100,255,218,0.25)"
+  accentReflection: "rgba(77,166,255,0.40)"
 };
 
 // --- Section-level slice rotation offsets ---
@@ -70,6 +62,14 @@ const PROJECT_OFFSETS = [
   { top: -6,  mid: 8,  bot: -3 },
   { top: 4,   mid: 4,  bot: 8 },
 ];
+
+// Hex-to-RGB helper for building rgba strings from BLUE constants
+function hexToRgb(hex: string) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return { r, g, b };
+}
 
 // Spring-interpolation helper (framerate-independent lerp)
 function springLerp(current: number, target: number, factor: number): number {
@@ -305,14 +305,21 @@ export default function MirrorCube({
   const stickerInset = Math.max(0.5, size * 0.014);
   const stickerBorderRadius = Math.max(0.5, size * 0.008);
 
-  // --- Hover-enhanced chamfer and emerald seam opacity ---
-  const chamferOpacity = 0.22 + hoverIntensity * 0.18;
-  const emeraldSeamOpacity = 0.45 + hoverIntensity * 0.30;
+  // --- Hover-enhanced chamfer and three-tier blue intensity ---
+  const chamferOpacity = 0.22 + hoverIntensity * 0.2;
+  const blueIntensity = 0.65 + hoverIntensity * 0.25; // 0.65 → 0.90 on hover
   const chamferHover = `rgba(255,255,255,${chamferOpacity.toFixed(3)})`;
-  const emeraldSeamHover = `rgba(100,255,218,${emeraldSeamOpacity.toFixed(3)})`;
 
-  // Build edge-specific rim lighting and emerald accent seams
-  // Simulates directional studio lighting on a physical object
+  const brightRgb = hexToRgb(BLUE.bright);
+  const primaryRgb = hexToRgb(BLUE.primary);
+  const deepRgb = hexToRgb(BLUE.deep);
+
+  const blueBright = `rgba(${brightRgb.r},${brightRgb.g},${brightRgb.b},${(blueIntensity * 0.85).toFixed(3)})`;
+  const bluePrimary = `rgba(${primaryRgb.r},${primaryRgb.g},${primaryRgb.b},${blueIntensity.toFixed(3)})`;
+  const blueDeep = `rgba(${deepRgb.r},${deepRgb.g},${deepRgb.b},${(blueIntensity * 0.65).toFixed(3)})`;
+
+  // Build edge-specific rim lighting using three-tier blue system
+  // Simulates premium studio lighting on a machined object
   const getEdgeLighting = (
     i: number,
     j: number,
@@ -328,35 +335,49 @@ export default function MirrorCube({
         `inset 0 0 ${Math.max(3, size * 0.025)}px ${MATERIALS.ambientOcclusion}`
       );
 
-      // Top faces get a stronger top-edge rim highlight (key light from above)
+      // Top faces — blue-tinted key light rim instead of pure white
       if (
         j === 2 &&
         (face === "front" || face === "back" || face === "left" || face === "right")
       ) {
-        shadows.push("inset 0 1px 0 rgba(255, 255, 255, 0.12)");
+        shadows.push(`inset 0 1px 0 rgba(77,166,255,${(0.08 + hoverIntensity * 0.06).toFixed(3)})`);
       }
 
-      // Right-column faces get a side rim highlight
+      // Right-column faces — deep blue side rim instead of white
       if (
         i === 2 &&
         (face === "front" || face === "back" || face === "top" || face === "bottom")
       ) {
-        shadows.push("inset -1px 0 0 rgba(255, 255, 255, 0.07)");
+        shadows.push(`inset -1px 0 0 rgba(31,124,255,${(0.06 + hoverIntensity * 0.05).toFixed(3)})`);
       }
 
-      // Top-right corner cubies get emerald accent reflection
-      // Uses hover-enhanced opacity
+      // Top-right corner cubies — brightest specular reflection (BLUE.bright)
       if (
         (i === 2 && j === 2) ||
         (i === 2 && k === 2 && face === "right") ||
         (j === 2 && k === 2 && face === "top")
       ) {
-        shadows.push(`inset 0 0 ${Math.max(2, size * 0.015)}px ${emeraldSeamHover}`);
+        shadows.push(`inset 0 0 ${Math.max(2, size * 0.018)}px ${blueBright}`);
       }
 
-      // Front-facing faces on the front layer get very subtle emerald edge
+      // Front-right corner cubies — secondary specular (BLUE.bright, weaker)
+      if ((i === 2 && k === 2 && face === "front")) {
+        shadows.push(`inset 0 0 ${Math.max(1, size * 0.01)}px rgba(${brightRgb.r},${brightRgb.g},${brightRgb.b},${(0.15 + hoverIntensity * 0.15).toFixed(3)})`);
+      }
+
+      // Right column front faces — primary blue edge reflection
+      if (i === 2 && face === "front") {
+        shadows.push(`inset -0.5px 0 0 ${bluePrimary}`);
+      }
+
+      // Front layer bottom edge — deep blue rim
       if (k === 2 && face === "front") {
-        shadows.push("inset 0 -0.5px 0 rgba(100, 255, 218, 0.08)");
+        shadows.push(`inset 0 -0.5px 0 ${blueDeep}`);
+      }
+
+      // Front layer top edge — deep blue highlight
+      if (k === 2 && face === "top") {
+        shadows.push(`inset 0 -0.5px 0 rgba(31,124,255,${(0.06 + hoverIntensity * 0.1).toFixed(3)})`);
       }
     } else {
       // Internal faces — deep ambient occlusion with depth pulse
@@ -496,10 +517,10 @@ export default function MirrorCube({
     );
   };
 
-  // --- Hover filter style ---
+  // --- Hover filter style — premium clarity increase ---
   const hoverFilter =
     hoverIntensity > 0.01
-      ? `contrast(${(1 + hoverIntensity * 0.15).toFixed(4)}) brightness(${(1 + hoverIntensity * 0.08).toFixed(4)})`
+      ? `contrast(${(1 + hoverIntensity * 0.2).toFixed(4)}) brightness(${(1 + hoverIntensity * 0.1).toFixed(4)})`
       : "none";
 
   return (
@@ -520,22 +541,22 @@ export default function MirrorCube({
         transition: "filter 400ms cubic-bezier(0.16, 1, 0.3, 1)",
       }}
     >
-      {/* Ambient emerald glow — product photography key light */}
+      {/* Volumetric blue aura — premium studio key light */}
       <div
         className="cube-core-glow"
-        style={{ width: `${size * 1.8}px`, height: `${size * 1.8}px` }}
+        style={{ width: `${size * 2}px`, height: `${size * 2}px` }}
       />
 
-      {/* Primary rim light — top-right emerald accent */}
+      {/* Blue rim light — top-right specular accent */}
       <div
         className="cube-rim-light"
-        style={{ width: `${size * 2.2}px`, height: `${size * 2.2}px` }}
+        style={{ width: `${size * 2.4}px`, height: `${size * 2.4}px` }}
       />
 
-      {/* Secondary rim light — bottom-left warm fill */}
+      {/* Secondary blue ambient — bottom-left fill */}
       <div
         className="cube-rim-light-secondary"
-        style={{ width: `${size * 2}px`, height: `${size * 2}px` }}
+        style={{ width: `${size * 2.4}px`, height: `${size * 2.4}px` }}
       />
 
       {/* Drop shadow — grounds the object in space */}
