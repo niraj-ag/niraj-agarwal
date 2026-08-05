@@ -61,6 +61,8 @@ const PROJECT_OFFSETS = [
   { top: 12,  mid: -4, bot: 2 },
   { top: -6,  mid: 8,  bot: -3 },
   { top: 4,   mid: 4,  bot: 8 },
+  { top: -10, mid: -2, bot: 5 },
+  { top: 9,   mid: 6,  bot: -6 },
 ];
 
 // Hex-to-RGB helper for building rgba strings from BLUE constants

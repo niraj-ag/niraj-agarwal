@@ -16,7 +16,7 @@ import {
  *
  * Systems:
  *   1. Scroll-based active section (IntersectionObserver)
- *   2. Hovered project index (set by ProjectItem components)
+ *   2. Hovered work index (set by work card components)
  *   3. Hover / Click states (set by cube wrapper)
  *   4. Mobile gyroscope orientation (DeviceOrientationEvent)
  */
