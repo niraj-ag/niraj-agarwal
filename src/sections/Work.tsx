@@ -1,8 +1,9 @@
-import { motion } from "framer-motion";
-import EnterpriseCaseCard from "../components/EnterpriseCaseCard";
-import CommercialEngagementCard from "../components/CommercialEngagementCard";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import ProjectShowcaseCard from "../components/ProjectShowcaseCard";
+import ProjectModal from "../components/ProjectModal";
 import { workSections } from "../data/portfolio";
-import type { WorkItem } from "../types";
+import type { Project } from "../types";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -22,14 +23,9 @@ const listVariants = {
   },
 };
 
-function WorkCard({ item, index }: { item: WorkItem; index: number }) {
-  if (item.kind === "enterprise") {
-    return <EnterpriseCaseCard index={index} {...item} />;
-  }
-  return <CommercialEngagementCard index={index} {...item} />;
-}
-
 export default function Work() {
+  const [selected, setSelected] = useState<Project | null>(null);
+
   return (
     <section id="work" className="section">
       <motion.div
@@ -42,12 +38,11 @@ export default function Work() {
           Selected Work
         </motion.span>
         <motion.h2 variants={fadeUp} className="section-title">
-          Systems &amp; Products
+          Built Products
         </motion.h2>
         <motion.p variants={fadeUp} className="section-description">
-          I build software products and engineering systems — from internal
-          enterprise AI tooling to commercial platforms delivered end-to-end.
-          Each item below is a product engineering story, not a code showcase.
+          Proof of work, not paragraphs. Six products — enterprise AI tooling
+          and commercial platforms — each one built end-to-end.
         </motion.p>
 
         {(() => {
@@ -69,11 +64,12 @@ export default function Work() {
               </header>
 
               <div className="work-list">
-                {section.items.map((item) => (
-                  <WorkCard
-                    key={item.name}
-                    item={item}
+                {section.items.map((project) => (
+                  <ProjectShowcaseCard
+                    key={project.id}
+                    project={project}
                     index={runningIndex++}
+                    onOpen={setSelected}
                   />
                 ))}
               </div>
@@ -81,6 +77,16 @@ export default function Work() {
           ));
         })()}
       </motion.div>
+
+      <AnimatePresence>
+        {selected && (
+          <ProjectModal
+            key={selected.id}
+            project={selected}
+            onClose={() => setSelected(null)}
+          />
+        )}
+      </AnimatePresence>
     </section>
   );
 }

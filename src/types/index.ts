@@ -1,77 +1,61 @@
-export type ProjectStatus = "live" | "internal" | "in-progress";
+export type ProjectStatus = "live" | "internal";
+
+export type ProjectCategory = "enterprise-ai" | "commercial-products";
+
+export type Visual =
+  | { type: "media"; src: string }
+  | { type: "branded" };
+
+export type ProjectVideo = {
+  type: "video";
+  src: string;
+  poster?: string;
+};
+
+export type Cta = {
+  label: string;
+  type: "link" | "modal";
+  href?: string;
+};
+
+export type ProjectFeature = {
+  title: string;
+  text: string;
+};
 
 export type ProjectMetric = {
   value: string;
   label: string;
 };
 
-export type EnterpriseProject = {
-  kind: "enterprise";
-  name: string;
-  badge: string;
-  status: ProjectStatus;
-  confidential: boolean;
-  confidentialTitle: string;
-  confidentialNote: string;
-  overview: string;
-  problem: string;
-  challenge: string;
-  architecture: string[];
-  engineeringDecisions: string[];
-  solution: string;
-  solutionPoints: string[];
-  outcome: string;
-  metrics: ProjectMetric[];
-  tech: string[];
-  highlights: string[];
-  role: string;
-  date: string;
-};
-
-export type DeliverableAbstract = {
-  tag: string;
-  title: string;
-};
-
-export type Deliverable = {
+export type Project = {
   id: string;
   name: string;
-  description: string;
-  purpose: string[];
-  overview?: string;
-  problem?: string;
-  solution?: string;
-  outcome: string;
-  tech: string[];
-  highlights?: string[];
-  abstract: DeliverableAbstract;
-  linkLabel?: string;
-  linkHref?: string;
-  authorizedNote?: string;
-  authorizedHref?: string;
-};
-
-export type CommercialEngagement = {
-  kind: "commercial";
-  name: string;
+  client: string;
+  category: ProjectCategory;
   badge: string;
-  status: ProjectStatus;
-  headline: string;
+  statusLabel: string;
+  description: string;
   overview: string;
+  note?: string;
   role: string;
   date: string;
-  highlights: string[];
-  deliverables: Deliverable[];
+  tech: string[];
+  features: ProjectFeature[];
+  stats: ProjectMetric[];
+  architecture?: string[];
+  preview: Visual | ProjectVideo;
+  gallery: (Visual | ProjectVideo)[];
+  actionPrimary: Cta;
+  actionSecondary?: Cta;
 };
-
-export type WorkItem = EnterpriseProject | CommercialEngagement;
 
 export type WorkSection = {
   id: string;
   label: string;
   count: number;
   tagline: string;
-  items: WorkItem[];
+  items: Project[];
 };
 
 export type TimelineItem = {

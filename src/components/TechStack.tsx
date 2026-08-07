@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { BrandLogo } from "./Brands";
 
 const toolGroups = [
   {
@@ -87,6 +88,7 @@ export default function TechStack() {
               <ul className="tool-list">
                 {group.tools.map((tool) => (
                   <li key={tool.name} className="tool-item">
+                    <BrandLogo name={tool.name} size={15} />
                     <span className="tool-item-name">{tool.name}</span>
                     <span className="tool-item-desc">{tool.desc}</span>
                   </li>
