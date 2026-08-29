@@ -41,7 +41,7 @@ export default function Work() {
           Built Products
         </motion.h2>
         <motion.p variants={fadeUp} className="section-description">
-          Proof of work, not paragraphs. Six products — enterprise AI tooling
+          Proof of work, not paragraphs. Five products — enterprise AI tooling
           and commercial platforms — each one built end-to-end.
         </motion.p>
 

@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import MirrorCube from "./MirrorCube";
 import { useCubeContext } from "./CubeController";
 
@@ -32,6 +33,21 @@ export default function Hero() {
     gyroAvailable,
     requestGyroPermission,
   } = useCubeContext();
+
+  // Responsive cube size — shrink on narrow viewports so the cube and its
+  // rim glows (extent = size * 2.4) never clip horizontally.
+  const [cubeSize, setCubeSize] = useState(170);
+
+  useEffect(() => {
+    const computeSize = () => {
+      // 48px = 24px padding each side; clamp between 120 and the desktop default
+      const fitted = Math.round((window.innerWidth - 48) / 2.4);
+      setCubeSize(Math.min(170, Math.max(120, fitted)));
+    };
+    computeSize();
+    window.addEventListener("resize", computeSize);
+    return () => window.removeEventListener("resize", computeSize);
+  }, []);
 
   const handleCubeInteraction = () => {
     triggerClick();
@@ -72,7 +88,7 @@ export default function Hero() {
             <a href="#work" className="btn btn-primary">
               Explore My Work
             </a>
-            <a href="/resume.pdf" download className="btn btn-ghost">
+            <a href="/Niraj-Agarwal-Resume.pdf" download className="btn btn-ghost">
               Resume
             </a>
           </motion.div>
@@ -89,7 +105,7 @@ export default function Hero() {
         >
           <motion.div variants={fadeUp}>
             <MirrorCube
-              size={170}
+              size={cubeSize}
               mode="interactive"
               className="animate-float"
               activeSection={activeSection}

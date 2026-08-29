@@ -94,6 +94,26 @@ export default function MirrorCube({
 }: MirrorCubeProps) {
   const [time, setTime] = useState(0);
 
+  // --- Viewport visibility gating ---
+  // Only run the (expensive) per-frame animation work while the cube is on screen.
+  // Skipping setState every frame when scrolled away prevents needless re-renders
+  // of the ~150-cubie scene for the entire page lifetime.
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inViewRef = useRef(true);
+
+  useEffect(() => {
+    const node = containerRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        inViewRef.current = entry.isIntersecting;
+      },
+      { threshold: 0 }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
   // --- Spring-physics cursor tracking ---
   // Instead of direct setState, we track target and interpolate smoothly
   const mouseTargetRef = useRef({ x: -20, y: 45 });
@@ -140,6 +160,9 @@ export default function MirrorCube({
   // Main animation frame — spring physics, idle detection, internal pulse
   useAnimationFrame((t) => {
     if (mode !== "interactive") return;
+
+    // Skip all per-frame state updates while the cube is scrolled off-screen
+    if (!inViewRef.current) return;
 
     if (autoPlay) {
       setTime(t / 1000);
@@ -528,6 +551,7 @@ export default function MirrorCube({
 
   return (
     <div
+      ref={containerRef}
       className={className}
       style={{
         position: "relative",

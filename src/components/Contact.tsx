@@ -15,7 +15,7 @@ const links = [
   },
   {
     label: "Resume",
-    href: "/resume.pdf",
+    href: "/Niraj-Agarwal-Resume.pdf",
   },
 ];
 

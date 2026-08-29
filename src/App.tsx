@@ -59,7 +59,7 @@ export default function App() {
       <div
         className="cursor-spotlight"
         style={{
-          background: `radial-gradient(600px at ${mousePos.x}px ${mousePos.y}px, rgba(100, 255, 218, 0.015), transparent 80%)`,
+          background: `radial-gradient(600px at ${mousePos.x}px ${mousePos.y}px, rgba(91, 140, 255, 0.015), transparent 80%)`,
         }}
       />
 

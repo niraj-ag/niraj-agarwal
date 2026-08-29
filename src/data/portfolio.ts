@@ -9,7 +9,7 @@ export const workSections: WorkSection[] = [
     label: "Enterprise AI",
     count: 2,
     tagline:
-      "Enterprise internal products engineered inside Capgemini's design practice â€” showcased with concept visuals, architecture and features.",
+      "Enterprise internal products engineered inside Capgemini's design practice — showcased with concept visuals, architecture and features.",
     items: [
       {
         id: "rdv-ai",
@@ -21,7 +21,7 @@ export const workSections: WorkSection[] = [
         description:
           "An AI copilot that turns client requirements into research, personas, journeys, wireframes and interactive prototypes.",
         overview:
-          "Prompt-driven AI pipeline that transforms a single requirement statement into a complete UX deliverable suite â€” research, personas, journeys, wireframes and interactive prototype.",
+          "Prompt-driven AI pipeline that transforms a single requirement statement into a complete UX deliverable suite — research, personas, journeys, wireframes and interactive prototype.",
         note: "Built for Capgemini Design Practice. Internal product showcase.",
         role: "Team of 3",
         date: "2025",
@@ -35,7 +35,7 @@ export const workSections: WorkSection[] = [
           { title: "Figma JSON", text: "Structured output importable into Figma workflows." },
         ],
         stats: [
-          { value: "1", label: "Prompt â†’ full workflow" },
+          { value: "1", label: "Prompt → full workflow" },
           { value: "7", label: "Deliverable types" },
           { value: "2", label: "LLM providers" },
         ],
@@ -60,7 +60,7 @@ export const workSections: WorkSection[] = [
         badge: "Enterprise AI",
         statusLabel: "Internal Product",
         description:
-          "AI accessibility & usability auditing for websites and Figma designs â€” WCAG and Nielsen in ~20 seconds.",
+          "AI accessibility & usability auditing for websites and Figma designs — WCAG and Nielsen in ~20 seconds.",
         overview:
           "Automated evaluation engine that audits sites and Figma files against WCAG and Nielsen heuristics, returning structured recommendations in seconds.",
         note: "Built for Capgemini Design Practice. Internal product showcase.",
@@ -91,7 +91,7 @@ export const workSections: WorkSection[] = [
     label: "Commercial Products",
     count: 3,
     tagline:
-      "Production software shipped for real businesses â€” each deliverable engineered to solve a distinct problem.",
+      "Production software shipped for real businesses — each deliverable engineered to solve a distinct problem.",
     items: [
       {
         id: "freshera-studio",
@@ -136,7 +136,7 @@ export const workSections: WorkSection[] = [
         badge: "SaaS Platform",
         statusLabel: "Live Product",
         description:
-          "The operating system running the studio â€” CRM, projects, invoices, analytics and client portal in one workspace.",
+          "The operating system running the studio — CRM, projects, invoices, analytics and client portal in one workspace.",
         overview:
           "Modular agency operating system that unifies CRM, project management, documents, invoices, scheduling and analytics for the full client lifecycle.",
         role: "Lead Engineer",
