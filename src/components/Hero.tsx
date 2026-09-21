@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import MirrorCube from "./MirrorCube";
 import { useCubeContext } from "./CubeController";
-import { RESUME_PATH } from "../data/links";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
