@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { BrandLogo } from "./Brands";
 
+// Back to the original toolkit. Skills are hand-picked from the resume.
 const toolGroups = [
   {
     name: "Build",
@@ -9,6 +10,8 @@ const toolGroups = [
       { name: "TypeScript", desc: "Type-safe, maintainable codebases" },
       { name: "Node.js", desc: "Server-side logic & API services" },
       { name: "Next.js", desc: "Full-stack React with SSR/SSG" },
+      { name: "Java", desc: "Enterprise-grade backend services" },
+      { name: "Spring Boot", desc: "Scalable Java services & APIs" },
     ],
   },
   {
@@ -32,6 +35,7 @@ const toolGroups = [
     name: "Operate",
     tools: [
       { name: "PostgreSQL", desc: "Relational data & complex queries" },
+      { name: "Supabase", desc: "Postgres backend with auth & RLS" },
       { name: "MongoDB", desc: "Flexible document storage" },
       { name: "Redis", desc: "Caching & real-time pub/sub" },
       { name: "AWS", desc: "Cloud infrastructure & scaling" },

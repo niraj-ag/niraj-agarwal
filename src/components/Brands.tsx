@@ -19,22 +19,35 @@ export function BrandLogo({
 }) {
   const brand = TECH_BRANDS[name];
   const color = brand?.color ?? "71717A";
-  const rawSrc = brand
+  const rawSrc = brand?.slug
     ? `https://cdn.simpleicons.org/${brand.slug}/${color}`
     : undefined;
   const { src, onError } = useLogo(rawSrc);
-  if (!brand || !src) return null;
+  if (src) {
+    return (
+      <span className="brand-logo" aria-hidden="true">
+        <img
+          src={src}
+          alt=""
+          width={size}
+          height={size}
+          loading="lazy"
+          onError={onError}
+          style={{ width: size, height: size }}
+        />
+      </span>
+    );
+  }
+
+  // Monogram fallback — keeps rows visually aligned for tools without a
+  // brand icon (SQL, CI/CD, Agile/Scrum, …) and when the CDN is unreachable.
   return (
-    <span className="brand-logo" aria-hidden="true">
-      <img
-        src={src}
-        alt=""
-        width={size}
-        height={size}
-        loading="lazy"
-        onError={onError}
-        style={{ width: size, height: size }}
-      />
+    <span
+      className="brand-logo brand-logo-fallback"
+      aria-hidden="true"
+      style={{ width: size, height: size, fontSize: size * 0.58 }}
+    >
+      {name.charAt(0)}
     </span>
   );
 }
@@ -52,7 +65,9 @@ export function CompanyBadge({ name }: { name: string }) {
   const brand = COMPANY_BRANDS[name];
   const color = brand?.color ?? "FFFFFF";
   const { src, onError } = useLogo(
-    brand ? `https://cdn.simpleicons.org/${brand.slug}/${color}` : undefined
+    brand?.slug
+      ? `https://cdn.simpleicons.org/${brand.slug}/${color}`
+      : undefined
   );
 
   if (brand && src) {

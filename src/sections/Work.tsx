@@ -5,6 +5,7 @@ import ProjectModal from "../components/ProjectModal";
 import { workSections } from "../data/portfolio";
 import type { Project } from "../types";
 
+
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
   show: {
@@ -76,6 +77,21 @@ export default function Work() {
             </motion.section>
           ));
         })()}
+
+        <motion.div variants={fadeUp} className="work-closing">
+          <p className="work-closing-text">
+            That's the short of it — real products, shipped end-to-end. I'd
+            rather talk about what you're building than summarize it here.
+          </p>
+          <div className="work-closing-actions">
+            <a href="/contact" className="btn btn-accent">
+              Book a Call
+            </a>
+            <a href="#contact" className="btn btn-ghost">
+              Prefer Email?
+            </a>
+          </div>
+        </motion.div>
       </motion.div>
 
       <AnimatePresence>

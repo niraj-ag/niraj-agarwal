@@ -42,6 +42,7 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -201,6 +202,30 @@ img, video {
   list-style: none;
 }
 
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem;
+}
+
+.nav-cta {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 0.55rem 1.1rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  transition: all 0.3s var(--ease-out);
+}
+
+.nav-cta:hover {
+  background: var(--accent-dim);
+  box-shadow: 0 0 24px rgba(91, 140, 255, 0.18);
+}
+
 .nav-link {
   font-family: var(--font-mono);
   font-size: 0.78rem;
@@ -279,8 +304,16 @@ img, video {
   letter-spacing: 0.1em;
 }
 
+.nav-mobile-cta {
+  margin-top: 1rem;
+}
+
 @media (max-width: 768px) {
   .nav-links {
+    display: none;
+  }
+
+  .nav-cta {
     display: none;
   }
 
@@ -349,8 +382,28 @@ img, video {
 .hero-cta-group {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 1rem;
   padding-top: 0.5rem;
+}
+
+.hero-cta-note {
+  margin-top: 1.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+.hero-text-link {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.3s ease;
+}
+
+.hero-text-link:hover {
+  color: #7da3ff;
 }
 
 .hero-cube-wrapper {
@@ -382,7 +435,7 @@ img, video {
   font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.08em;
-  padding: 0.875rem 2rem;
+  padding: 0.9rem 2rem;
   border-radius: 4px;
   display: inline-flex;
   align-items: center;
@@ -391,6 +444,7 @@ img, video {
   transition: all 0.35s var(--ease-out);
   position: relative;
   overflow: hidden;
+  min-height: 44px;
 }
 
 .btn-primary {
@@ -402,6 +456,20 @@ img, video {
 .btn-primary:hover {
   background: var(--accent-dim);
   box-shadow: 0 0 30px rgba(91, 140, 255, 0.1);
+}
+
+/* Filled primary CTA — the booking action across the site */
+.btn-accent {
+  border: 1px solid var(--accent);
+  color: #050505;
+  background: var(--accent);
+}
+
+.btn-accent:hover {
+  background: #7da3ff;
+  border-color: #7da3ff;
+  box-shadow: 0 0 32px rgba(91, 140, 255, 0.28);
+  transform: translateY(-1px);
 }
 
 .btn-ghost {
@@ -1614,6 +1682,20 @@ img, video {
   align-self: center;
 }
 
+/* Monogram fallback glyph for tool rows without a brand icon */
+.brand-logo-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  border-radius: 5px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  line-height: 1;
+}
+
 .tool-item:hover {
   color: var(--text-primary);
 }
@@ -1633,6 +1715,27 @@ img, video {
   .tools-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* --- Work closing bridge (post-proof CTA) --- */
+.work-closing {
+  margin-top: 3.5rem;
+  padding-top: 3rem;
+  border-top: 1px solid var(--border);
+}
+
+.work-closing-text {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: var(--text-secondary);
+  max-width: 640px;
+}
+
+.work-closing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1.5rem;
 }
 
 /* --- Beyond Screen --- */
@@ -1673,12 +1776,236 @@ img, video {
   }
 }
 
-/* --- Contact / Let's Build --- */
+/* --- Page Shell (shared page wrapper) --- */
+.page-shell {
+  position: relative;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* --- Contact Page (/contact) --- */
+.contact-page {
+  padding-top: var(--section-gap);
+}
+
+.contact-page-intro {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.contact-page-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 6vw, 3.75rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+}
+
+.contact-page-description {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: var(--text-secondary);
+}
+
+.contact-page-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 2.5rem;
+}
+
+.contact-scheduler {
+  margin-top: 4.5rem;
+  border-top: 1px solid var(--border);
+  padding-top: 3.5rem;
+}
+
+.contact-scheduler-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.contact-scheduler-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.contact-scheduler-sub {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  max-width: 520px;
+}
+
+.contact-scheduler-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-surface);
+  overflow: hidden;
+}
+
+.contact-scheduler-note {
+  margin-top: 1.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  letter-spacing: 0.03em;
+}
+
+.contact-page-back {
+  display: inline-block;
+  margin-top: 3rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+}
+
+.contact-page-back:hover {
+  color: var(--accent);
+}
+
+.contact-calendar-badge {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.35rem 0.8rem;
+  white-space: nowrap;
+}
+
+/* Cal embed frame — reserves full height so the calendar never shifts layout */
+.cal-embed {
+  height: 720px;
+  position: relative;
+}
+
+.cal-embed-frame {
+  position: absolute;
+  inset: 0;
+}
+
+.cal-embed-frame iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+/* Skeleton shown while the embed mounts */
+.cal-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 1.5rem;
+}
+
+.cal-skeleton span {
+  background: var(--bg-surface-hover);
+  border-radius: 6px;
+  animation: cal-pulse 1.6s ease-in-out infinite;
+}
+
+.cal-skeleton-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.cal-skeleton-chip {
+  width: 84px;
+  height: 28px;
+}
+
+.cal-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+}
+
+.cal-skeleton-grid span {
+  aspect-ratio: 1;
+}
+
+.cal-skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.cal-skeleton-list span {
+  height: 44px;
+}
+
+.cal-skeleton-list span:last-child {
+  width: 55%;
+}
+
+@keyframes cal-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+@media (max-width: 640px) {
+  .cal-embed {
+    height: 600px;
+  }
+
+  .contact-scheduler {
+    margin-top: 3.5rem;
+    padding-top: 2.5rem;
+  }
+}
+
+.contact-primary {
+  margin-top: 2.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.contact-note {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  letter-spacing: 0.03em;
+  line-height: 1.6;
+  max-width: 380px;
+}
+
 .contact-links {
   display: flex;
   flex-wrap: wrap;
   gap: 2rem;
-  margin-top: 2.5rem;
+  margin-top: 2rem;
 }
 
 .contact-link {
@@ -1721,6 +2048,13 @@ img, video {
 
 .contact-link:hover .contact-link-arrow {
   transform: translateX(3px);
+}
+
+@media (max-width: 640px) {
+  .contact-primary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }
 
 /* --- Cursor Spotlight --- */

@@ -3,7 +3,8 @@
 // dark on dark get overridden to light tones. Missing slugs fall back to text.
 
 export type Brand = {
-  slug: string;
+  /** Simple Icons slug; null renders the monogram fallback instead of a CDN hit. */
+  slug: string | null;
   color?: string;
 };
 
@@ -21,6 +22,15 @@ export const TECH_BRANDS: Record<string, Brand> = {
   Vercel: { slug: "vercel", color: "FFFFFF" },
   "Node.js": { slug: "nodedotjs", color: "5FA04E" },
   Express: { slug: "express", color: "FFFFFF" },
+  "Express.js": { slug: "express", color: "FFFFFF" },
+  Java: { slug: null, color: "F89820" },
+  JavaScript: { slug: "javascript", color: "F7DF1E" },
+  "Spring Boot": { slug: "springboot", color: "6DB33F" },
+  MySQL: { slug: "mysql", color: "4479A1" },
+  GitHub: { slug: "github", color: "FFFFFF" },
+  Postman: { slug: "postman", color: "FF6C37" },
+  "IntelliJ IDEA": { slug: "intellijidea", color: "FFFFFF" },
+  "VS Code": { slug: "visualstudiocode", color: "007ACC" },
   "Claude API": { slug: "anthropic", color: "D97757" },
   "OpenAI API": { slug: "openai", color: "10A37F" },
   Playwright: { slug: "playwright", color: "2EAD33" },
@@ -31,7 +41,7 @@ export const TECH_BRANDS: Record<string, Brand> = {
   Figma: { slug: "figma", color: "F24E1E" },
   MongoDB: { slug: "mongodb", color: "47A248" },
   Redis: { slug: "redis", color: "FF4438" },
-  AWS: { slug: "amazonwebservices", color: "FF9900" },
+  AWS: { slug: null, color: "FF9900" },
 };
 
 export const COMPANY_BRANDS: Record<string, Brand> = {

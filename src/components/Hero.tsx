@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import MirrorCube from "./MirrorCube";
 import { useCubeContext } from "./CubeController";
+import { RESUME_PATH } from "../data/links";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -85,13 +86,14 @@ export default function Hero() {
           </motion.p>
 
           <motion.div variants={fadeUp} className="hero-cta-group">
-            <a href="#work" className="btn btn-primary">
+            <a href="/contact" className="btn btn-accent">
+              Book a Call
+            </a>
+            <a href="#work" className="btn btn-ghost">
               Explore My Work
             </a>
-            <a href="/Niraj-Agarwal-Resume.pdf" download className="btn btn-ghost">
-              Resume
-            </a>
           </motion.div>
+          
         </div>
 
         {/* Right Side: The Rubik's Cube — with interaction awareness */}

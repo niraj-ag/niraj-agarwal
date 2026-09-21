@@ -1,22 +1,16 @@
 import { motion } from "framer-motion";
+import {
+  EMAIL_HREF,
+  GITHUB_URL,
+  LINKEDIN_URL,
+  RESUME_PATH,
+} from "../data/links";
 
 const links = [
-  {
-    label: "GitHub",
-    href: "https://github.com/niraj-ag",
-  },
-  {
-    label: "LinkedIn",
-    href: "https://www.linkedin.com/in/nirajagarwal7/",
-  },
-  {
-    label: "Email",
-    href: "mailto:niraj.ku.agarwal@gmail.com",
-  },
-  {
-    label: "Resume",
-    href: "/Niraj-Agarwal-Resume.pdf",
-  },
+  { label: "GitHub", href: GITHUB_URL },
+  { label: "LinkedIn", href: LINKEDIN_URL },
+  { label: "Email", href: EMAIL_HREF },
+  { label: "Resume", href: RESUME_PATH },
 ];
 
 const fadeUp = {
@@ -37,6 +31,7 @@ const container = {
   },
 };
 
+/* Homepage closing section — points visitors at the /contact booking page. */
 export default function Contact() {
   return (
     <section id="contact" className="section">
@@ -56,6 +51,16 @@ export default function Contact() {
           Open to opportunities, interesting problems, and conversations about
           products worth building.
         </motion.p>
+
+        <motion.div variants={fadeUp} className="contact-primary">
+          <a href="/contact" className="btn btn-accent">
+            Book a Call
+          </a>
+          <p className="contact-note">
+            A 15-minute video call — no strings. We'll figure out if there's a
+            fit, then take it from there.
+          </p>
+        </motion.div>
 
         <motion.div variants={fadeUp} className="contact-links">
           {links.map((link) => (
